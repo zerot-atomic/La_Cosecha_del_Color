@@ -355,12 +355,18 @@ func _build_lights() -> void:
 	# Directional light for shadows (matches other rooms: ShadowCaster)
 	var sun := DirectionalLight3D.new()
 	sun.name = "ShadowCaster"
-	sun.transform = Transform3D(0.8, -0.5, 0.33, 0, 0.55, 0.83, -0.6, -0.66, 0.44, 0, 8, 0)
+	# Godot 4: Transform3D(Basis, Vector3) - first 9 values = basis (rotation), last 3 = origin (position)
+	var basis := Basis(
+		Vector3(0.8, -0.5, 0.33),
+		Vector3(0, 0.55, 0.83),
+		Vector3(-0.6, -0.66, 0.44)
+	)
+	sun.transform = Transform3D(basis, Vector3(0, 8, 0))
 	sun.light_energy = 0.6
 	sun.shadow_enabled = true
 	sun.shadow_bias = 0.01
 	sun.shadow_normal_bias = 0.05
-	sun.shadow_distance = 50.0
+	# Godot 4 gl_compatibility: shadow_max_distance not available on DirectionalLight3D
 	add_child(sun)
 	# Single fill light
 	var fill := OmniLight3D.new()

@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://scripts3d/Player3D.gd" type="Script" id=1]
 [ext_resource path="res://art3d/characters/inspector.glb" type="PackedScene" id=2]
@@ -9,6 +9,10 @@ height = 1.8
 
 [sub_resource type="SphereShape3D" id=2]
 radius = 1.2
+
+[sub_resource type="QuadMesh" id=3]
+size = Vector2(1.0, 1.0)
+orientation = 2
 
 [node name="Player3D" type="CharacterBody3D"]
 script = ExtResource( 1 )
@@ -31,6 +35,10 @@ rotation_degrees = Vector3( 0, 180, 0 )
 
 [node name="inspector" parent="MeshRoot/ModelPivot" instance=ExtResource( 2 )]
 transform = Transform3D( 1.0, 0, 0, 0, 1.0, 0, 0, 0, 1.0, 0, 0.0, 0 )
+
+[node name="BlobShadow" type="MeshInstance3D" parent="."]
+transform = Transform3D( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0 )
+mesh = SubResource( 3 )
 
 [node name="CameraPivot" type="Node3D" parent="."]
 

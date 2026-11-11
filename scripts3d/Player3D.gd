@@ -58,6 +58,7 @@ var _threat_pressure: float = 0.0
 @onready var camera = $CameraPivot/SpringArm3D/Camera3D
 @onready var mesh_root = $MeshRoot
 @onready var anim_player = _find_anim_player()
+@onready var blob_shadow: MeshInstance3D = $BlobShadow
 
 func _ready():
 	# Cargar parámetros centralizados
@@ -106,6 +107,16 @@ func _ready():
 	camera_pivot.set_as_top_level(true)
 	camera_yaw = rotation.y
 	facing_angle = rotation.y
+	# Blob shadow setup (unlit transparent circle under player)
+	if blob_shadow != null and is_instance_valid(blob_shadow):
+		var mat := StandardMaterial3D.new()
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		mat.albedo_color = Color(0, 0, 0, 0.45)
+		mat.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
+		mat.cull_mode = StandardMaterial3D.CULL_DISABLED
+		mat.render_priority = 1
+		blob_shadow.material_override = mat
+		blob_shadow.visible = false
 	_update_camera()
 
 	# PARCHE v12: las animaciones que vienen de Mixamo llegan sin repetirse.
@@ -326,6 +337,33 @@ func _update_camera():
 	camera_pivot.rotation.z = sin(_shake_time * 1.35) * shake_weight * 0.018 * terror_scale
 	camera_pivot.rotation.x = cos(_shake_time * 1.8) * shake_weight * 0.009 * terror_scale
 	spring_arm.rotation.x = camera_pitch
+	# Fix: SpringArm3D places camera along +Z instead of -Z in Godot 4.7.
+	# Rotate SpringArm3D by PI so its +Z points backward (behind player).
+	spring_arm.rotation.y = PI
+	_update_blob_shadow()
+
+func _update_blob_shadow() -> void:
+	# Raycast down to find floor distance, show blob shadow if close enough
+	if blob_shadow == null or not is_instance_valid(blob_shadow):
+		return
+	var query := PhysicsRayQueryParameters3D.create(global_position, global_position + Vector3(0, -5.0, 0))
+	query.exclude = [get_rid()]
+	query.collision_mask = collision_mask
+	var result := get_world_3d().direct_space_state.intersect_ray(query)
+	if result:
+		var floor_y: float = result.position.y if result.position else global_position.y
+		var dist: float = global_position.y - floor_y
+		# Show shadow if player is within ~0.5m of ground (accounts for small levitation)
+		if dist < 0.5:
+			blob_shadow.visible = true
+			blob_shadow.global_position = Vector3(global_position.x, floor_y + 0.02, global_position.z)
+			# Scale shadow based on height (smaller when higher)
+			var scale_factor: float = lerp(1.0, 0.3, clamp(dist / 0.5, 0.0, 1.0))
+			blob_shadow.scale = Vector3(scale_factor, 1.0, scale_factor)
+		else:
+			blob_shadow.visible = false
+	else:
+		blob_shadow.visible = false
 
 func _threat_camera_shake() -> Vector3:
 	var threat_distance := INF
