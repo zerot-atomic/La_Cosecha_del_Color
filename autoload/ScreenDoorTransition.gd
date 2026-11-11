@@ -98,20 +98,26 @@ func is_transitioning() -> bool:
 	return _busy
 
 func transition_to_zone(zone_id: String, player: Node = null, exit_area: Node = null, style: String = "door") -> void:
+	print("[TRANS] ScreenDoorTransition.transition_to_zone: zone_id=", zone_id, " player=", player, " exit_area=", exit_area, " style=", style)
 	if _busy:
+		print("[TRANS] ScreenDoorTransition: busy, aborting")
 		return
 	if not GameManager.ZONE_SCENES.has(zone_id):
 		_abort_transition(player, exit_area, "Zona de destino desconocida: " + zone_id)
 		return
 	var destination: String = GameManager.ZONE_SCENES[zone_id]
+	print("[TRANS] ScreenDoorTransition: destination scene = ", destination)
 	if not ResourceLoader.exists(destination):
 		_abort_transition(player, exit_area, "No se encontró la escena de destino: " + destination)
 		return
 
 	# Extract spawn_marker from exit_area if available
 	var spawn_marker: String = ""
-	if is_instance_valid(exit_area) and exit_area.has_property("spawn_marker"):
-		spawn_marker = exit_area.get("spawn_marker")
+	if is_instance_valid(exit_area):
+		var sm = exit_area.get("spawn_marker")
+		if sm != null and sm != "":
+			spawn_marker = sm
+	print("[TRANS] ScreenDoorTransition: spawn_marker = ", spawn_marker)
 
 	_busy = true
 	if is_instance_valid(player):
@@ -125,39 +131,52 @@ func transition_to_zone(zone_id: String, player: Node = null, exit_area: Node = 
 	_door_leaf.scale = Vector2.ONE
 	_trap_frame.scale = Vector2(0.24, 0.24)
 	_trap_leaf.rotation_degrees = 0.0
+	print("[TRANS] ScreenDoorTransition: starting fade_in tween")
 	var fade_in := create_tween()
 	fade_in.tween_property(_cover, "color:a", 1.0, 0.3)
-	await fade_in.finished
+	while fade_in.is_valid():
+		await get_tree().process_frame
+	print("[TRANS] ScreenDoorTransition: fade_in finished, waiting 0.2s")
 	await get_tree().create_timer(0.2).timeout
+	print("[TRANS] ScreenDoorTransition: timer done, starting door animation")
 
 	if style == "trapdoor":
 		_trap_root.visible = true
 		var approach_hatch := create_tween()
 		approach_hatch.tween_property(_trap_frame, "scale", Vector2(1.3, 1.3), 0.72).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-		await approach_hatch.finished
+		while approach_hatch.is_valid():
+			await get_tree().process_frame
 		await get_tree().create_timer(0.16).timeout
 		var open_hatch := create_tween()
 		open_hatch.tween_property(_trap_leaf, "rotation_degrees", -108.0, 0.62).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		await open_hatch.finished
+		while open_hatch.is_valid():
+			await get_tree().process_frame
 		await get_tree().create_timer(0.28).timeout
 		var close_hatch := create_tween()
 		close_hatch.tween_property(_trap_leaf, "rotation_degrees", 0.0, 0.48).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		await close_hatch.finished
+		while close_hatch.is_valid():
+			await get_tree().process_frame
 	else:
 		_door_root.visible = true
 		var approach := create_tween()
 		approach.tween_property(_door_frame, "scale", Vector2(1.35, 1.35), 0.72).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-		await approach.finished
+		while approach.is_valid():
+			await get_tree().process_frame
 		await get_tree().create_timer(0.16).timeout
 		var open_door := create_tween()
 		open_door.tween_property(_door_leaf, "scale:x", 0.035, 0.46).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		await open_door.finished
+		while open_door.is_valid():
+			await get_tree().process_frame
 		await get_tree().create_timer(0.24).timeout
 		var close_door := create_tween()
 		close_door.tween_property(_door_leaf, "scale:x", 1.0, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		await close_door.finished
+		while close_door.is_valid():
+			await get_tree().process_frame
+		await get_tree().create_timer(0.1).timeout
 
+	print("[TRANS] ScreenDoorTransition: calling GameManager.change_zone(", zone_id, ", ", spawn_marker, ")")
 	var change_error: Error = GameManager.change_zone(zone_id, spawn_marker)
+	print("[TRANS] ScreenDoorTransition: change_zone returned error = ", change_error)
 	if change_error != OK:
 		_abort_transition(player, exit_area, "No se pudo cargar la zona %s (error %d)." % [zone_id, change_error])
 		return
@@ -165,15 +184,22 @@ func transition_to_zone(zone_id: String, player: Node = null, exit_area: Node = 
 	# borrado de la escena anterior y termina siempre la animación.
 	await get_tree().process_frame
 	await get_tree().process_frame
+	# Reset busy flag BEFORE fade_out so new transitions can start immediately
+	# if the new scene's ExitArea3D triggers right away.
+	_busy = false
 	_door_root.visible = false
 	_trap_root.visible = false
 	var fade_out := create_tween()
 	fade_out.tween_property(_cover, "color:a", 0.0, 0.52).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	await fade_out.finished
-	_busy = false
+	while fade_out.is_valid():
+		await get_tree().process_frame
 
 func _abort_transition(player: Node, exit_area: Node, message: String) -> void:
+	print("[TRANS] ScreenDoorTransition._abort_transition: ", message)
 	push_error("ScreenDoorTransition: " + message)
+	# Show error on screen via HUD if available
+	if is_instance_valid(GameManager.active_hud):
+		GameManager.active_hud.show_message("[ERROR TRANSICIÓN] " + message, "", "Error")
 	_door_root.visible = false
 	_trap_root.visible = false
 	_cover.color = Color(0, 0, 0, 0)
