@@ -37,10 +37,10 @@ var msg_time := 0.0
 var msg_last_text := ""
 
 const CORRUPTION_MESSAGES = [
-	"Todo se siente extrano.",
-	"Algo en el aire no esta bien.",
+	"Todo se siente extraño.",
+	"Algo en el aire no está bien.",
 	"El color se filtra en todo lo que miras.",
-	"Ya casi no puedes distinguir que es real.",
+	"Ya casi no puedes distinguir qué es real.",
 ]
 
 func _ready():

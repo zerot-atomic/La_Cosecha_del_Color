@@ -169,6 +169,70 @@ func _run_zone_tests() -> void:
 	results.levitation_blob = true
 	print("Levitation/blob shadow: PASS (Player3D.is_levitating + blob shadow)")
 
+	# Test 26: Model visual front matches movement direction
+	_run_model_orientation_test()
+
+func _run_model_orientation_test() -> void:
+	test_phase = 26
+	_phase_start_time = Time.get_ticks_msec() / 1000.0
+	_running = true
+
+	# Instanciar Player3D
+	var player_scene = load("res://scenes3d/Player3D.tscn")
+	var player = player_scene.instantiate()
+	add_child(player)
+	player.global_position = Vector3(0, 0.1, 0)
+
+	# Add floor
+	var floor = StaticBody3D.new()
+	var floor_shape = CollisionShape3D.new()
+	var box_shape = BoxShape3D.new()
+	box_shape.size = Vector3(100, 1, 100)
+	floor_shape.shape = box_shape
+	floor.add_child(floor_shape)
+	floor.global_position = Vector3(0, -1.5, 0)
+	floor.collision_layer = 1
+	floor.collision_mask = 1
+	add_child(floor)
+
+	# Store player reference for check
+	_test_player = player
+
+	# Wait one frame then check
+	var timer = Timer.new()
+	timer.one_shot = true
+	timer.wait_time = 0.1
+	timer.timeout.connect(Callable(self, "_check_model_orientation"))
+	add_child(timer)
+	timer.start()
+
+var _test_player: Node3D
+
+func _check_model_orientation() -> void:
+	var player = _test_player
+	# Get model's visual forward (ModelPivot's -Z in global space)
+	var mesh_root = player.get_node("MeshRoot")
+	var model_pivot = mesh_root.get_node("ModelPivot")
+	var visual_forward = -model_pivot.global_transform.basis.z  # model's forward
+	var movement_forward = Vector3(sin(player.facing_angle), 0, cos(player.facing_angle))
+	var cam_to_player = (player.global_position - player.get_node("CameraPivot/SpringArm3D/Camera3D").global_position).normalized()
+
+	var dot_movement = visual_forward.dot(movement_forward)
+	var dot_camera = visual_forward.dot(cam_to_player)
+
+	print("Model orientation check:")
+	print("  visual_forward: ", visual_forward)
+	print("  movement_forward: ", movement_forward)
+	print("  cam_to_player: ", cam_to_player)
+	print("  dot(visual, movement): ", dot_movement)
+	print("  dot(visual, camera): ", dot_camera)
+
+	var orientation_ok = dot_movement > 0.9 and dot_camera > 0.9
+	results.model_orientation = orientation_ok
+	print("Model orientation: ", "PASS" if orientation_ok else "FAIL")
+
+	# Cleanup
+	player.queue_free()
 	_print_results()
 	get_tree().quit()
 

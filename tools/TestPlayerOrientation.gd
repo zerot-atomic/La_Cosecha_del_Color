@@ -9,6 +9,7 @@ var phase_timer: float = 0.0
 var results: Dictionary = {}
 var start_pos: Vector3
 var initial_facing: float
+var floor_y: float = -1.5
 var _setup_done := false
 var _phase_start_time: float = 0.0
 var _running := false
@@ -47,7 +48,10 @@ func _on_setup_timeout() -> void:
 	box_shape.size = Vector3(100, 1, 100)
 	floor_shape.shape = box_shape
 	floor.add_child(floor_shape)
-	floor.global_position = Vector3(0, -0.5, 0)
+	var floor_y: float = -1.5
+	floor.global_position = Vector3(0, floor_y - 0.5, 0)  # center at floor_y - 0.5
+	floor.collision_layer = 1
+	floor.collision_mask = 1
 	add_child(floor)
 
 	# Wait one frame for floor to be in tree
@@ -106,6 +110,7 @@ func _process(delta: float) -> void:
 	elif test_phase == 6 and elapsed >= 1.5:
 		print("_process: elapsed=", elapsed, " calling _phase6_done")
 		_phase6_done()
+	# Phase 7 triggered by timer
 
 func _phase1_done() -> void:
 	print("_phase1_done called")
@@ -189,7 +194,7 @@ func _phase5_done() -> void:
 		var model_bottom = model_pivot.global_position.y + aabb.position.y * model_pivot.scale.y
 
 		results.mesh_height_ok = abs(mesh_height - 1.8) < 0.1
-		results.feet_on_floor = abs(model_bottom) < 0.05
+		results.feet_on_floor = abs(model_bottom - floor_y) < 0.05
 
 		print("Phase 5 (height/feet): mesh_height=", mesh_height, " model_bottom=", model_bottom)
 		print("  height_ok=", results.mesh_height_ok, " feet_on_floor=", results.feet_on_floor)
@@ -207,6 +212,23 @@ func _phase6_done() -> void:
 	var delta_z = player.global_position.z - start_pos.z
 	results.run_works = delta_z > 3.0
 	print("Phase 6 (run): delta_z=", delta_z, " run_works=", results.run_works)
+
+	# Wait for physics to settle - use timer
+	test_phase = 7
+	var timer = Timer.new()
+	timer.one_shot = true
+	timer.wait_time = 0.5
+	timer.timeout.connect(Callable(self, "_start_levitation_check"))
+	add_child(timer)
+	timer.start()
+
+func _start_levitation_check() -> void:
+	_phase7_done()
+
+func _phase7_done() -> void:
+	var levitating: bool = player.is_levitating()
+	results.levitation_check = not levitating  # should be false (not levitating)
+	print("Phase 7 (levitation): is_levitating=", levitating, " ok=", results.levitation_check)
 
 	_running = false
 	_print_results()

@@ -3,15 +3,15 @@ class_name Wrapper3D
 # ============================================================
 # "The Wrapper" — el monstruo que acecha y persigue.
 #
-# QUE HACE (todo solo, sin pasarle nada mas que el jugador):
+# QUE HACE (todo solo, sin pasarle nada más que el jugador):
 #   PATRULLA  camina entre puntos (patrol_points) y se detiene a mirar.
-#   DETECTA   te ve (cono de vision + linea de vista, no atraviesa muros) o te
+#   DETECTA   te ve (cono de visión + linea de vista, no atraviesa muros) o te
 #             oye (segun el ruido que haces: Player3D.get_noise_radius()).
 #               - Agachado (tecla C) te ve de mucho menos lejos y casi no te oye.
 #               - Dentro de pastizal alto te ve de la mitad de lejos.
 #   PERSIGUE  grita (una vez) y corre hacia ti, esquivando obstaculos.
 #             Corriendo (Shift) le sacas ventaja: chase_speed < run_speed.
-#   BUSCA     si te pierde unos segundos, va a donde te vio por ultima vez,
+#   BUSCA     si te pierde unos segundos, va a donde te vio por última vez,
 #             mira alrededor y vuelve a patrullar.
 #   ATACA     si te alcanza: golpe de cordura (placeholder, ver _start_attack).
 #   EMBOSCADA start_chase(jugador, true, true) = grita y NUNCA te pierde
@@ -343,7 +343,7 @@ func _perceive() -> bool:
 		return false
 	var fwd := Vector3(sin(facing_angle), 0.0, cos(facing_angle))
 	if d > 3.0 and fwd.dot(to_t / d) < cos(deg_to_rad(sight_fov_deg * 0.5)):
-		return false                     # fuera de su cono de vision (muy cerca, lo nota igual)
+		return false                     # fuera de su cono de visión (muy cerca, lo nota igual)
 	return _has_line_of_sight()
 
 func _has_line_of_sight() -> bool:
@@ -471,7 +471,7 @@ func _start_attack() -> void:
 	_state_timer = _anim_length("Attack_Lunge", 0.9)
 	_play("Attack_Lunge")
 	emit_signal("player_caught", target)
-	# Castigo provisional: un golpe fuerte de cordura. Facil de cambiar despues
+	# Castigo provisiónal: un golpe fuerte de cordura. Facil de cambiar despues
 	# (jumpscare, reinicio de posicion...) sin tocar el resto del monstruo.
 	GameManager.drain_sanity(attack_sanity_damage)
 	GameManager.show_message("¡Te atrapó!", "", "", true)

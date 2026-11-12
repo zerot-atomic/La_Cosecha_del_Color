@@ -14,7 +14,7 @@ config/name="LA COSECHA"
 run/main_scene="res://scenes3d/MainMenu3D.tscn"
 config/features=PackedStringArray("4.7")
 config/icon="res://Emblema cósmico del grimorio fracturado.png"
-config/version="0.2.13-beta"
+config/version="0.2.14-beta"
 
 [autoload]
 

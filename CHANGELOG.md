@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.14-beta] - 2026-11-09
+## [0.2.14-beta] - 2026-11-11
 
 ### Fixed — Fase 0 Critical Fixes
 - **Inverted tank controls**: Fixed `_apply_tank_movement()` in `Player3D.gd:287` — Godot coordinate system (positive Y rotation = counter-clockwise/LEFT) vs expected tank controls (D = turn right). Negated `turn_input`: `facing_angle -= turn_input`.
@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Spawn markers inside ExitArea3D**: Moved spawn markers to safe positions with 0.1 Y offset outside collision shapes — campo_cultivo SpawnDesdeBosque (z=-3.16→-6.5), atico SpawnDesdeAtico (z=-2.82→-6.0), casa_principal SpawnDesdeAtico (z=1.5→0.5, Y=0.2).
 - **Floating player**: `GameManager.spawn_y_offset = 0.1 → -0.1` (capsule bottom was at -0.8m, now 0.04m on floor).
 - **Journal panel readability**: Updated `_make_panel_style()` — bg_color alpha 0.96, border_color alpha 0.88, improved border color (0.45, 0.32, 0.52).
+- **Model visual rotation 180°**: Fixed `ModelPivot.rotation_degrees = Vector3(0, 180, 0)` in `Player3D.tscn` — model natively faces -Z (Godot standard), code uses +Z forward; explicit 180° Y rotation aligns model to code convention without changing movement logic or camera.
+- **Camino_entrada floor moiré/noise**: Enabled mipmaps with anisotropic filtering in `dirt_02.png.import` (`mipmaps/generate=true`, `mipmaps/limit=8`, `mipmaps/anisotropic=4`) — eliminates shimmering on floor texture at distance.
+- **Gray semi-transparent square (blob shadow)**: Replaced with procedural radial gradient texture in `Player3D.gd:_update_blob_shadow()` — generates alpha-faded circle (center opaque → edge transparent) instead of square mesh artifact.
+- **Spanish accents/ñ restored**: Fixed text in `HUD.gd` ("extraño", "está", "qué"), `ProcTools.gd` ("razón", "aún", "así"), `Wrapper3D.gd` ("más", "visión", "última") — all dialogue preserves proper diacritics.
+- **Headless tween completion**: Fixed `ScreenDoorTransition.gd` — polls `tween.is_valid()` in `while` loop instead of `await tween.finished` (doesn't complete in headless); `_busy` flag reset immediately after scene change before `fade_out`.
 
 ### Added — Fase 1 Complete
 - **Exterior zones (1a)**: camino_entrada, campo_cultivo, cráter_meteorito, bosque, pozo — centralized fog via `GameManager.ZONE_FOG`, ShadowCaster DirectionalLight3D in all scenes.
@@ -29,6 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Spawn markers positioned with 0.1 Y offset outside ExitArea3D shapes
 - Vision system triggers correctly on key clues
 - Save/load roundtrip preserves all game state
+- `TestNucleo.tscn`: 26/26 tests PASS (zones, autoloads, transitions, controls, fog, difficulty, ending, pursuer, camera, vision, inventory, save/load, audio, UI, levitation, model orientation)
+- `TestPlayerOrientation.tscn`: 7/7 phases PASS (W forward, camera behind, A left turn, D right turn, mesh height/feet on floor, run speed, levitation detection)
+- Model orientation verified: `dot(visual_forward, movement_forward) > 0.9`, `dot(visual_forward, camera_to_player) > 0.9`
 
 ---
 

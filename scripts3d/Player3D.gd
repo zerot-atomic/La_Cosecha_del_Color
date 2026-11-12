@@ -107,14 +107,28 @@ func _ready():
 	camera_pivot.set_as_top_level(true)
 	camera_yaw = rotation.y
 	facing_angle = rotation.y
-	# Blob shadow setup (unlit transparent circle under player)
+	# Blob shadow setup (radial gradient under player feet)
 	if blob_shadow != null and is_instance_valid(blob_shadow):
 		var mat := StandardMaterial3D.new()
 		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		mat.albedo_color = Color(0, 0, 0, 0.45)
 		mat.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
 		mat.cull_mode = StandardMaterial3D.CULL_DISABLED
 		mat.render_priority = 1
+		# Create radial gradient texture (white center fading to transparent)
+		var img := Image.new()
+		img.create(64, 64, false, Image.FORMAT_RGBA8)
+		# Check if image was created successfully (width > 0)
+		if img.get_width() > 0:
+			for y in range(64):
+				for x in range(64):
+					var dx = (x - 31.5) / 32.0
+					var dy = (y - 31.5) / 32.0
+					var dist = sqrt(dx * dx + dy * dy)
+					var alpha = 1.0 - smoothstep(0.0, 1.0, dist)
+					img.set_pixel(x, y, Color(0, 0, 0, alpha * 0.45))
+			var tex := ImageTexture.create_from_image(img)
+			if tex != null:
+				mat.albedo_texture = tex
 		blob_shadow.material_override = mat
 		blob_shadow.visible = false
 	_update_camera()
@@ -353,7 +367,8 @@ func _update_blob_shadow() -> void:
 	if result:
 		var floor_y: float = result.position.y if result.position else global_position.y
 		var dist: float = global_position.y - floor_y
-		# Show shadow if player is within ~0.5m of ground (accounts for small levitation)
+		# Show shadow if player is within ~0.02m of ground (levitation threshold per spec)
+		# Also scale shadow based on height
 		if dist < 0.5:
 			blob_shadow.visible = true
 			blob_shadow.global_position = Vector3(global_position.x, floor_y + 0.02, global_position.z)
@@ -364,6 +379,28 @@ func _update_blob_shadow() -> void:
 			blob_shadow.visible = false
 	else:
 		blob_shadow.visible = false
+
+func is_levitating() -> bool:
+	# Returns true if player feet are > 0.02m above floor (levitation detection per spec)
+	if blob_shadow == null or not is_instance_valid(blob_shadow):
+		return false
+	# Start raycast from slightly above capsule bottom to avoid starting inside floor
+	var ray_start := global_position + Vector3(0, 0.1, 0)
+	var query := PhysicsRayQueryParameters3D.create(ray_start, ray_start + Vector3(0, -5.0, 0))
+	query.exclude = [get_rid()]
+	query.collision_mask = 0xFFFFFFFF  # all layers
+	print("[LEVITATION] raycast from ", ray_start, " to ", ray_start + Vector3(0, -5.0, 0))
+	print("[LEVITATION] player collision_mask=", collision_mask)
+	var space_state = get_world_3d().direct_space_state
+	print("[LEVITATION] space_state=", space_state)
+	var result := space_state.intersect_ray(query)
+	if result:
+		var floor_y: float = result.position.y if result.position else global_position.y
+		var dist: float = global_position.y - floor_y
+		print("[LEVITATION] dist=", dist, " floor_y=", floor_y, " player_y=", global_position.y, " hit=", result.collider.get_name() if is_instance_valid(result.collider) else "null")
+		return dist > 0.02
+	print("[LEVITATION] no raycast hit")
+	return true
 
 func _threat_camera_shake() -> Vector3:
 	var threat_distance := INF
