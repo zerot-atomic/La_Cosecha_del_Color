@@ -1,7 +1,7 @@
 extends RefCounted
 # ============================================================
 # Utilidades para construir cosas por codigo (casa, granero, granja).
-#  - tex():            carga una textura (aunque no este importada).
+#  - tex():            carga una textura (aúnque no este importada).
 #  - mat():            material con la textura "triplanar": la textura se
 #                      reparte sola por tamaño real (metros), sin importar
 #                      si la pared mide 3 o 12 metros. Asi no se estira.
@@ -50,8 +50,8 @@ static func glow(color: Color, energy: float = 0.6) -> StandardMaterial3D:
 	m.roughness = 0.3
 	return m
 
-# Instancia un modelo .glb. Si por alguna razon aun no esta importado, lo
-# lee directo del disco (asi nunca desaparece de la escena).
+# Instancia un modelo .glb. Si por alguna razón aún no esta importado, lo
+# lee directo del disco (así nunca desaparece de la escena).
 static func load_model(path: String) -> Node3D:
 	var node: Node = null
 	if ResourceLoader.exists(path):

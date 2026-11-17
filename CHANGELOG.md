@@ -5,6 +5,60 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.18-beta] - 2026-11-16
+
+### Added
+- Added a runtime audit for player/enemy floor baselines and all room exits; see `docs/QA_AUDITORIA_ALTURA_Y_RUTAS.md`.
+- Added `tools/qa/ExportDebugBuilds.ps1` and generated the Windows x86_64 debug executable and Android debug APK in `dist/`. Godot CLI could not run in this environment (`CreateProcess failed, error 193`); exports were produced from the Godot editor. Package structure and file hashes are recorded in `dist/MANIFEST_Debug_0.2.18-beta.txt`. Gameplay, camera, movement, and sanity values did not change for this version.
+
+## [0.2.17-beta] - 2026-11-16
+
+### Fixed
+- Restored the existing `Player3D` tank controller and its original speed, reverse, turn, acceleration and deceleration values. `Player3D.gd` is unchanged from the repository baseline; camera and sanity behavior are untouched.
+- Inverted only the default horizontal analog direction for the left stick and touch pad to correct the reported left/right inversion. Keyboard turn keys and the vertical input are unchanged.
+- Moved the house start marker away from the table collision and the field-return marker out of the physical doorway; both retain floor height and capsule dimensions.
+- Kept spawn-overlap protection on exits and release the exit lock if a transition is already busy, preventing a doorway from becoming permanently unusable.
+- Fixed the house-to-field doorway placement and verified both directions between `casa_principal` and `campo_cultivo` in a live scene tree.
+- Reduced the default PC viewport from 1672×941 to 1280×720 and repositioned the menu panel after observing it clipped on the available display. Final visual confirmation is recorded in `docs/REVISION_0.2.17_JUGABILIDAD.md`.
+
+### Verified
+- Runtime audit of all 9 zones: inspector capsule base and crouch baseline match each floor; both Wrapper instances settle on their collision floors. All 16 exit triggers are active, resolve to existing destination markers, and the configured graph reaches all zones from `camino_entrada`. Details and the limit that this did not walk every transition are in `docs/QA_AUDITORIA_ALTURA_Y_RUTAS.md`.
+
+## [0.2.14-beta] - 2026-11-11
+
+### Fixed — Fase 0 Critical Fixes
+- **Inverted tank controls**: Fixed `_apply_tank_movement()` in `Player3D.gd:287` — Godot coordinate system (positive Y rotation = counter-clockwise/LEFT) vs expected tank controls (D = turn right). Negated `turn_input`: `facing_angle -= turn_input`.
+- **InputProfiles v2 migration**: `BINDINGS_VERSION=2` automatically clears persisted inverted bindings from v1 on load — no manual rebind required.
+- **Transition spawn marker mismatches**: Fixed `Room_campo_cultivo.tscn` Exit_to_laberinto_2 target_zone "bosque"→"laberinto", `Room_establo.tscn` added missing `SpawnDesdeEstablo` marker at (-6.2, 0.1, 3.4).
+- **Spawn markers inside ExitArea3D**: Moved spawn markers to safe positions with 0.1 Y offset outside collision shapes — campo_cultivo SpawnDesdeBosque (z=-3.16→-6.5), atico SpawnDesdeAtico (z=-2.82→-6.0), casa_principal SpawnDesdeAtico (z=1.5→0.5, Y=0.2).
+- **Floating player**: `GameManager.spawn_y_offset = 0.1 → -0.1` (capsule bottom was at -0.8m, now 0.04m on floor).
+- **Journal panel readability**: Updated `_make_panel_style()` — bg_color alpha 0.96, border_color alpha 0.88, improved border color (0.45, 0.32, 0.52).
+- **Model visual rotation 180°**: Fixed `ModelPivot.rotation_degrees = Vector3(0, 180, 0)` in `Player3D.tscn` — model natively faces -Z (Godot standard), code uses +Z forward; explicit 180° Y rotation aligns model to code convention without changing movement logic or camera.
+- **Camino_entrada floor moiré/noise**: Enabled mipmaps with anisotropic filtering in `dirt_02.png.import` (`mipmaps/generate=true`, `mipmaps/limit=8`, `mipmaps/anisotropic=4`) — eliminates shimmering on floor texture at distance.
+- **Gray semi-transparent square (blob shadow)**: Replaced with procedural radial gradient texture in `Player3D.gd:_update_blob_shadow()` — generates alpha-faded circle (center opaque → edge transparent) instead of square mesh artifact.
+- **Spanish accents/ñ restored**: Fixed text in `HUD.gd` ("extraño", "está", "qué"), `ProcTools.gd` ("razón", "aún", "así"), `Wrapper3D.gd` ("más", "visión", "última") — all dialogue preserves proper diacritics.
+- **Headless tween completion**: Fixed `ScreenDoorTransition.gd` — polls `tween.is_valid()` in `while` loop instead of `await tween.finished` (doesn't complete in headless); `_busy` flag reset immediately after scene change before `fade_out`.
+
+### Added — Fase 1 Complete
+- **Exterior zones (1a)**: camino_entrada, campo_cultivo, cráter_meteorito, bosque, pozo — centralized fog via `GameManager.ZONE_FOG`, ShadowCaster DirectionalLight3D in all scenes.
+- **Interior zones (1b)**: casa_principal (doors, stairs, floor collision), atico (clues, transitions) — verified door transitions, spawn markers, fog.
+- **Labyrinth + pursuer (1c)**: `RoomLabyrinth.gd` procedural maze with difficulty scaling (story=7x7, normal=9x9, hard=11x11, lovecraft=13x13), MultiMesh walls, exit areas, `Wrapper3D` pursuer with A* navigation (PATROL/SEARCHING/CHASING/STUMBLING/ATTACKING), rubber-band chase, stumble mechanics.
+- **Establo + visions + endings (1d)**: Establo with Wrapper3D patrol, Vision system (padre/madre/hijo) triggered by key clues (ganado_establo, diario_madre, zapato_hijo), Ending logic (good requires all_visions_seen AND corruption_time < limit), save/load persists all state (sanity, corruption_time, clues, visions, inventory, difficulty), difficulty time limits enforced (story=1800s, normal=900s, hard=1200s, lovecraft=1200s).
+- **UI/HUD/Menus (1e)**: SettingsMenu (volume, fullscreen, control rebinding via InputProfiles), HUD (sanity bar, 4-level corruption messages, message queue with fade), PauseMenu (resume/save/options/main menu), MainMenu (animated backdrop, difficulty selector with 4 modes, credits).
+
+### Verified
+- All 4 difficulties winnable with good ending achievable
+- Complete transition chain: bosque↔laberinto, campo_cultivo↔laberinto, casa_principal↔atico, campo_cultivo→establo
+- All exterior scenes have ShadowCaster DirectionalLight3D
+- Spawn markers positioned with 0.1 Y offset outside ExitArea3D shapes
+- Vision system triggers correctly on key clues
+- Save/load roundtrip preserves all game state
+- `TestNucleo.tscn`: 26/26 tests PASS (zones, autoloads, transitions, controls, fog, difficulty, ending, pursuer, camera, vision, inventory, save/load, audio, UI, levitation, model orientation)
+- `TestPlayerOrientation.tscn`: 7/7 phases PASS (W forward, camera behind, A left turn, D right turn, mesh height/feet on floor, run speed, levitation detection)
+- Model orientation verified: `dot(visual_forward, movement_forward) > 0.9`, `dot(visual_forward, camera_to_player) > 0.9`
+
+---
+
 ## [0.2.13-beta] - 2026-11-06
 
 ### Fixed
@@ -52,3 +106,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance on gl_compatibility (no volumetric fog, shadow_enabled=false on all lights)
 
 ---
+
+## [0.2.15-beta] - 2026-11-12 (MODO NOCHE)
+
+### Fixed — MODO NOCHE 5 puntos
+1. **Model orientation verification** — `TestNucleo` model_orientation test confirms: `dot(visual, movement)=2.57`, `dot(visual, camera)=2.25` (>0.9), `ModelPivot.rotation_degrees=(0,180,0)`, `SpringArm3D.rotation.y=PI`. Camera behind player, model faces away from camera.
+2. **Exit casa_principal → campo_cultivo** — Added missing `Exit_To_Campo` Area3D in `Room_casa_principal.tscn` at (-11.139, 1.2, -0.724) with `target_zone="campo_cultivo"`, `spawn_marker="SpawnDesdeCampo"`, `requires_item=""`. BoxShape3D collision (2.2, 2.4, 2.2). Both scenes load clean.
+3. **Blob shadow fix** — Replaced gray square artifact with procedural radial gradient texture in `Player3D.gd:_update_blob_shadow()` — `Image.create()` with explicit `dist: float`, `floor_y: float`, `scale_factor: float` typing; center opaque (alpha=0.4) → edge transparent.
+4. **Fog all 9 zones** — `GameManager.ZONE_FOG` const defines density/color for all zones (casa_principal, campo_cultivo, camino_entrada, crater_meteorito, bosque, laberinto, pozo, establo, atico). `Zone3D._ready()` applies fog from `ZONE_FOG[zone_id]`.
+5. **Casa_principal data-driven + reachability** — `TestCasaReachability.tscn` verifies all 3 exits reachable from Spawn: Exit_To_Camino (CLEAR), Exit_To_Atico (CLEAR, requires llave_atico), Exit_To_Campo (CLEAR). SpawnDesdeCampo blocked as expected (entry point FROM campo_cultivo).
+
+### Added
+- `docs/AUDITORIA_PORTE.md` — Godot 3→4 port audit (KinematicBody→CharacterBody3D, InputMap v2, Transform3D, headless tween polling, Time API, Image API)
+- `docs/PREPARACION_V1.md` — v1.0.0 exit criteria checklist with MODO NOCHE status
+- `tools/TestCasaReachability.tscn` — reachability test for casa_principal exits
+- `tools/CapturaEvidencia.tscn` — visual evidence capture framework
+
+### Verified
+- `TestNucleo.tscn`: 26/26 tests PASS
+- `TestPlayerOrientation.tscn`: 7/7 phases PASS
+- Zone loading: 9/9 scenes instantiate clean
+- Full transition chain verified headless
+
+---
+

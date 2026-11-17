@@ -59,11 +59,11 @@ func _set_movement_vector(value: Vector2) -> void:
 		Input.action_release(action)
 		_held_actions.erase(action)
 	if value.x < -0.04:
-		Input.action_press("turn_left", -value.x)
-		_track_action("turn_left")
-	elif value.x > 0.04:
-		Input.action_press("turn_right", value.x)
+		Input.action_press("turn_right", -value.x)
 		_track_action("turn_right")
+	elif value.x > 0.04:
+		Input.action_press("turn_left", value.x)
+		_track_action("turn_left")
 	if value.y < -0.04:
 		Input.action_press("move_forward", -value.y)
 		_track_action("move_forward")

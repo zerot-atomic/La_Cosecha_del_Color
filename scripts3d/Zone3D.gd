@@ -154,6 +154,10 @@ func _spawn_player():
 		p.global_position = spawn.global_position + Vector3(0, gz.spawn_y_offset, 0)
 		# Nace mirando en la dirección del marcador (rotación Y del Marker3D).
 		p.set_facing(spawn.rotation.y)
+	# Si el marcador cae dentro de una salida, ese solapamiento inicial no
+	# cuenta como cruzar una puerta; la salida se rearma al salir de su volumen.
+	for exit_area in find_children("*", "ExitArea3D", true, false):
+		exit_area.guard_spawn_overlap(p)
 	if zone_id == "establo":
 		var wrapper = get_node_or_null("Room_establo/Wrapper3D")
 		if wrapper != null and wrapper.has_method("start_patrol"):

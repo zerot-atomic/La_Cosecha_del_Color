@@ -11,3 +11,20 @@ build/
 dist/
 bin/
 obj/
+
+# Test / debug artifacts
+test_*.txt
+test_err.txt
+test_out.txt
+tools/*.gd
+tools/*.uid
+tools/*.tscn
+tools/qa/
+docs/AUDITORIA_*.md
+docs/DEPURACIONES_*.md
+docs/DIFF_*.md
+docs/PLAYTHROUGH_*.md
+docs/PREPARACION_*.md
+docs/QA_*.md
+docs/QA_*.txt
+docs/REVISION_*.md

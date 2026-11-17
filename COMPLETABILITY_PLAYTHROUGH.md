@@ -3,6 +3,8 @@
 **Fecha**: 2026-11-05  
 **Objetivo**: Verificar que ambas rutas (buen/mal final) son alcanzables en los 4 modos de dificultad
 
+> **Actualización de revisión — 2026-11-16:** este plan conserva hipótesis antiguas de presión del enemigo y no debe tomarse como medición vigente. La revisión 0.2.17-beta restauró el controlador de tanque existente y corrigió dos marcadores/una transición. La matriz actual de GameManager da 30 min (Historia), 15 min (Normal), 20 min (Difícil) y 20 min (Lovecraft). Ninguna dificultad queda certificada por scripts o carga de escenas: hace falta completar el recorrido humano en ejecución. Ver `docs/REVISION_0.2.17_JUGABILIDAD.md` para las comprobaciones y pendientes.
+
 ---
 
 ## RUTA CRÍTICA DE OBJETOS (Camino Dorado)
