@@ -101,6 +101,12 @@ func transition_to_zone(zone_id: String, player: Node = null, exit_area: Node = 
 	print("[TRANS] ScreenDoorTransition.transition_to_zone: zone_id=", zone_id, " player=", player, " exit_area=", exit_area, " style=", style)
 	if _busy:
 		print("[TRANS] ScreenDoorTransition: busy, aborting")
+		# El ExitArea3D ya bloqueó al jugador antes de diferir esta llamada.
+		# Si se aborta aquí sin cancelar esa salida, queda bloqueada para siempre.
+		if is_instance_valid(exit_area) and exit_area.has_method("cancel_transition"):
+			exit_area.cancel_transition(player)
+		elif is_instance_valid(player):
+			player.set_physics_process(true)
 		return
 	if not GameManager.ZONE_SCENES.has(zone_id):
 		_abort_transition(player, exit_area, "Zona de destino desconocida: " + zone_id)

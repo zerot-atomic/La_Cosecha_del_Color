@@ -15,6 +15,7 @@ class_name ExitArea3D
 @export_enum("door", "trapdoor") var transition_style: String = "door"
 
 var _transitioning: bool = false
+var _spawn_guarded_body: Player3D = null
 
 func _ready():
 	# Ensure monitoring is enabled and collision layers are correct
@@ -24,11 +25,35 @@ func _ready():
 	collision_mask = 1
 	print("[TRANS] ExitArea3D._ready: monitoring=", monitoring, " collision_layer=", collision_layer, " collision_mask=", collision_mask)
 	connect("body_entered", Callable(self, "_on_body_entered"))
+	connect("body_exited", Callable(self, "_on_body_exited"))
+
+func guard_spawn_overlap(player: Player3D) -> void:
+	# Evita que aparecer dentro de una puerta se interprete como cruzarla.
+	# La protección se conserva solo mientras el jugador siga solapando esta área.
+	_spawn_guarded_body = player
+	_finish_spawn_guard.call_deferred(player)
+
+func _finish_spawn_guard(player: Player3D) -> void:
+	# Espera a que el servidor físico registre el cuerpo en la escena nueva.
+	# La señal body_entered puede llegar después de la primera actualización.
+	for _frame in range(4):
+		await get_tree().physics_frame
+	if not is_instance_valid(player) or _spawn_guarded_body != player:
+		return
+	if not get_overlapping_bodies().has(player):
+		_spawn_guarded_body = null
+
+func _on_body_exited(body: Node3D) -> void:
+	if body == _spawn_guarded_body:
+		_spawn_guarded_body = null
 
 func _on_body_entered(body):
 	print("[TRANS] ExitArea3D._on_body_entered: body=", body, " body_name=", body.get_name() if is_instance_valid(body) else "null", " target_zone=", target_zone, " requires_item=", requires_item, " transition_style=", transition_style)
 	if _transitioning or not (body is Player3D):
 		print("[TRANS] ExitArea3D: skipping - _transitioning=", _transitioning, " is_Player3D=", body is Player3D)
+		return
+	if body == _spawn_guarded_body:
+		print("[TRANS] ExitArea3D: ignored overlap caused by player spawn")
 		return
 	if requires_item != "" and not GameManager.inventory.get(requires_item, false):
 		print("[TRANS] ExitArea3D: blocked - missing item ", requires_item)

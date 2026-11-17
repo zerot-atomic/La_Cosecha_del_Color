@@ -170,10 +170,10 @@ func _build_title_and_menu(canvas: CanvasLayer) -> void:
 
 	menu_root = Control.new()
 	menu_root.name = "MenuIntro"
-	menu_root.anchor_left = 0.70
-	menu_root.anchor_top = 0.50
+	menu_root.anchor_left = 0.57
+	menu_root.anchor_top = 0.40
 	menu_root.anchor_right = 0.96
-	menu_root.anchor_bottom = 0.95
+	menu_root.anchor_bottom = 0.97
 	canvas.add_child(menu_root)
 
 	var panel := PanelContainer.new()

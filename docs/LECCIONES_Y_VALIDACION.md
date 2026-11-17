@@ -14,7 +14,7 @@ Este documento registra errores reales cometidos al reparar la beta. Debe leerse
 
 - El cuerpo físico nace en el marcador de spawn con su cápsula apoyada en el suelo.
 - La cámara de referencia guardada en `Downloads/LaCosechaDelColor_porte_Godot4.zip` usa `CameraPivot.set_as_top_level(true)`, sigue la posición global del jugador, aplica yaw `camera_yaw + PI` y suaviza `camera_yaw` hacia `facing_angle`. En el estado actual sus valores son distancia 4.3 m, altura 1.6 m y pitch -0.17. Preservar esa conducta; no ajustar cámara para compensar el modelo.
-- WASD, mando y joystick táctil mantienen el mismo marco direccional relativo a la cámara. No reescribir esta lógica al solucionar una pose o un error visual.
+- Se conserva el controlador de tanque existente: W/S (eje vertical) avanzan o retroceden y A/D (eje horizontal) giran al inspector. Mando y joystick táctil deben mantener esa misma semántica; no reescribir la movilidad al solucionar una pose o un error visual.
 - El modelo visual debe alinearse a partir de su pose real importada; el root del jugador y la cápsula no se mueven para “arreglar” el render.
 
 ## Comprobaciones antes de entregar

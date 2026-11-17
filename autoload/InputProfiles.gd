@@ -7,8 +7,8 @@ const ACTIONS := ["move_forward", "move_backward", "turn_left", "turn_right", "r
 const DEFAULT_BINDINGS := {
 	"move_forward": [{"kind": "key", "code": KEY_W}, {"kind": "key", "code": KEY_UP}, {"kind": "axis", "axis": JOY_AXIS_LEFT_Y, "value": -1.0}],
 	"move_backward": [{"kind": "key", "code": KEY_S}, {"kind": "key", "code": KEY_DOWN}, {"kind": "axis", "axis": JOY_AXIS_LEFT_Y, "value": 1.0}],
-	"turn_left": [{"kind": "key", "code": KEY_A}, {"kind": "key", "code": KEY_LEFT}, {"kind": "axis", "axis": JOY_AXIS_LEFT_X, "value": -1.0}],
-	"turn_right": [{"kind": "key", "code": KEY_D}, {"kind": "key", "code": KEY_RIGHT}, {"kind": "axis", "axis": JOY_AXIS_LEFT_X, "value": 1.0}],
+	"turn_left": [{"kind": "key", "code": KEY_A}, {"kind": "key", "code": KEY_LEFT}, {"kind": "axis", "axis": JOY_AXIS_LEFT_X, "value": 1.0}],
+	"turn_right": [{"kind": "key", "code": KEY_D}, {"kind": "key", "code": KEY_RIGHT}, {"kind": "axis", "axis": JOY_AXIS_LEFT_X, "value": -1.0}],
 	"run": [{"kind": "key", "code": KEY_SHIFT}, {"kind": "button", "button": JOY_BUTTON_LEFT_STICK}],
 	"crouch": [{"kind": "key", "code": KEY_C}, {"kind": "button", "button": JOY_BUTTON_B}],
 	"interact": [{"kind": "key", "code": KEY_E}, {"kind": "button", "button": JOY_BUTTON_A}],

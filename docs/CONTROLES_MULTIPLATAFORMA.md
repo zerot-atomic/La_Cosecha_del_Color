@@ -2,19 +2,19 @@
 
 ## Configuración
 
-Abre **Opciones → Controles** desde el menú de ajustes para reasignar las acciones. Cada acción conserva su asignación de teclado y de mando; el juego guarda los cambios localmente en `user://input_bindings.cfg`. **Restaurar valores predeterminados** vuelve a las asignaciones incluidas con el juego. WASD, stick izquierdo y joystick táctil usan un marco direccional relativo a la cámara que se mantiene estable mientras el jugador sostiene una dirección; la cámara está anclada al jugador y acompaña suavemente sus giros. Las opciones generales de volumen y pantalla completa siguen disponibles en la pestaña **General**.
+Abre **Opciones → Controles** desde el menú de ajustes para reasignar las acciones. Cada acción conserva su asignación de teclado y de mando; el juego guarda los cambios localmente en `user://input_bindings.cfg`. **Restaurar valores predeterminados** vuelve a las asignaciones incluidas con el juego. Se conserva el esquema de movimiento tipo tanque: W/S y el eje vertical avanzan o retroceden respecto al personaje; A/D y el eje horizontal lo hacen girar. La cámara sigue anclada al jugador y acompaña suavemente sus giros, sin cambios de encuadre. Las opciones generales de volumen y pantalla completa siguen disponibles en la pestaña **General**.
 
 | Acción | Teclado inicial | Mando inicial |
 |---|---|---|
 | Avanzar / retroceder | W / S y flechas arriba / abajo | Stick izquierdo / cruceta |
-| Girar izquierda / derecha | A / D y flechas izquierda / derecha | Stick izquierdo / cruceta |
+| Girar izquierda / derecha | A / D y flechas izquierda / derecha | Eje horizontal del stick izquierdo (invertido para corregir el giro reportado) / cruceta |
 | Correr | Shift | Stick izquierdo presionado (L3) |
 | Agacharse | C | B |
 | Interactuar | E | A |
 | Diario | Tab | Y |
 | Pausa | Escape | Start |
 
-La navegación de menús también admite cruceta, stick y botones del mando. Las teclas y botones se pueden volver a asignar desde la pantalla de controles.
+La navegación de menús también admite cruceta, stick y botones del mando. El cambio de eje horizontal afecta los valores predeterminados; las reasignaciones personalizadas guardadas se conservan. Si el stick continúa invertido, usa **Restaurar valores predeterminados** en la pestaña Controles. Las teclas y botones se pueden volver a asignar desde la pantalla de controles.
 
 ## Pantalla táctil
 
