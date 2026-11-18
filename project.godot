@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="LA COSECHA"
-config/version="0.2.18-beta"
+config/version="0.2.20-earlyaccess"
 run/main_scene="res://scenes3d/MainMenu3D.tscn"
 config/features=PackedStringArray("4.7")
 config/icon="res://Emblema cósmico del grimorio fracturado.png"
